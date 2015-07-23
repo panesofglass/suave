@@ -156,6 +156,7 @@ module OwinConstants =
 [<CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
 module OwinAppFunc =
 
+  open Aether
   open Suave.Utils
   open Suave.Sockets.Control
   open Suave.Web.ParsingAndControl
@@ -185,6 +186,7 @@ module OwinAppFunc =
   let totalLensPartialIsomorphism ((g, s): Property<'a,'b>) ((f, t): PIso<'b,'c>) : PLens<'a,'c> =
       (fun a -> f (g a)),
       (fun c a -> s (t c) a)
+
   /// Compose a total lens and a total lens, giving a total lens
   let (>-->) l1 l2 =
       totalLensTotalLens l1 l2
@@ -218,10 +220,10 @@ module OwinAppFunc =
         OwinConstants.requestPath, HttpContext.request_ >--> HttpRequest.url_ >--> uriAbsolutePath <--> isoBox
 
         // @panesofglass: continue from here, wrapping it all!
-        OwinConstants.requestQueryString, fun ctx -> ctx.request.rawQuery |> box
+        OwinConstants.requestQueryString, req HttpRequest.rawQuery_
         OwinConstants.requestProtocol, fun ctx -> "HTTP" |> box
         OwinConstants.requestHeaders, fun ctx -> ctx.request.headers |> Map.ofList :> IDictionary<string,string> |> box
-        OwinConstants.requestBody, fun ctx -> ctx.request.rawForm |> box
+        OwinConstants.requestBody, req HttpRequest.rawForm_
         OwinConstants.requestId, fun ctx -> ctx.request.trace.reqId |> box
         OwinConstants.requestUser, fun ctx -> ctx.userState |> Map.tryFind "user" |> function | Some x -> box x | None -> box null
 
@@ -256,7 +258,7 @@ module OwinAppFunc =
         // when you 'add' a key, you have to change the state for that key, in
         // Aether notation:
         // set the state to the 
-        state := Lens.setLens (owinRW |> Map.find k) !state v
+        state := Lens.set (owinRW |> Map.find k) !state v
 
       member x.Remove k =
         // does it get removed before added?

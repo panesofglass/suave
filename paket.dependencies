@@ -1,5 +1,6 @@
 source https://nuget.org/api/v2
 
+nuget Aether
 nuget FSharp.Charting
 nuget FSharp.Core
 nuget Http.fs-prerelease

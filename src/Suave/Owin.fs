@@ -20,6 +20,12 @@ open Freya.Core.Integration
 type OwinApp =
   OwinEnvironment -> Async<unit>
 
+// TODO: add this to Freya.
+module Constants =
+  module CommonKeys =
+    [<CompiledName("ServerName")>]
+    let [<Literal>] serverName = "server.Name"
+
 [<RequireQualifiedAccess>]
 [<CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
 module OwinAppFunc =
@@ -56,6 +62,9 @@ module OwinAppFunc =
       (fun v userState ->
         let userState' = if userState.ContainsKey("user") then userState.Remove("user") else userState
         userState'.Add("user", v))
+    let responseStatusCode : Property<_, _> =
+      (fun (c : HttpCode) -> c.code),
+      (fun v c -> HttpCode.TryParse v |> Option.get)
 
     let owinMap =
       [ (* 3.2.1 Request Data *)
@@ -72,7 +81,7 @@ module OwinAppFunc =
         Constants.requestUser, HttpContext.user_state_ >--> requestUser <--> boxIso
 
         (* 3.2.2 Response Data *)
-        //Constants.responseStatusCode, // etc, wrap in the lenses
+        Constants.responseStatusCode, HttpContext.response_ >--> HttpResult.status_
         //Constants.responseReasonPhrase
         //Constants.responseProtocol
         //Constants.responseHeaders

@@ -106,6 +106,14 @@ let unit =
         let subj = createOwin ()
         subj.["testing.MyKey"] <- "oh yeah"
         eq "read back" "oh yeah" (subj.["Testing.MyKey"] |> unbox)
+
+      testCase "interaction/set and retrieve with case insensitivity" <| fun _ ->
+        let subj = createOwin ()
+        subj.["testing.MyKey"] <- "oh yeah"
+        eq "read back" "oh yeah" (subj.["Testing.MyKey"] |> unbox)
+
+        subj.["Testing.MyKey"] <- "oh no"
+        eq "read again" "oh no" (subj.["testing.MyKey"] |> unbox)
       ]
     ]
 

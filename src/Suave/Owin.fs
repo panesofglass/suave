@@ -346,8 +346,9 @@ module OwinApp =
               raise (KeyNotFoundException())
 
           | None ->
-            let value = !changed |> tryFind key
-            value |> Option.fold (fun s t -> snd t) (initialHeaders |> find key)
+            !changed
+            |> tryFind key
+            |> Option.fold (fun s t -> snd t) (defaultArg (initialHeaders |> tryFind key) [||])
 
         and set key value =
           changed := !changed |> put key (clock, value)
@@ -483,8 +484,8 @@ module OwinApp =
        (fun v x -> x)
       ) <--> untyped
 
-    let mapFindLens key : Property<Map<_, _>, _> =
-      (fun x -> x |> Map.find key),
+    let mapFindLens key : Property<Map<string, _>, _> =
+      (fun x -> x |> Map.pick (fun k v -> if k.Equals(key, StringComparison.OrdinalIgnoreCase) then Some v else None)),
       (fun v x -> x |> Map.put key v)
 
     let stringlyTyped (toString : 'a -> string) (ofString : string -> 'a) : Iso<'a, string> =
